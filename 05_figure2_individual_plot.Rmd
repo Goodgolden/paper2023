@@ -1,0 +1,403 @@
+---
+title: "05_figure2_individuals"
+author: "randy"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+warnings = FALSE,
+message = FALSE,
+comment = "#>",
+#results = "hide",
+error = FALSE)
+
+## clean the R environment
+graphics.off()
+rm(list = ls())
+freshr::freshr()
+
+## load packages
+library(here, quietly = TRUE)
+library(tidyverse, quietly = TRUE)
+library(gtsummary, quietly = TRUE)
+library(flextable, quietly = TRUE)
+library(splines)
+library(tibble)
+library(nlme)
+library(gamlss)
+library(JMbayes)
+
+## check the directory for the file
+# here::dr_here()
+here::set_here()
+
+## the figure or results should be saved 
+# paste0("foldername/Sfilename_workingresult_", 
+#.       Sys.Date(), ".filetype")
+```
+
+
+```{r}
+source("R/00_functions.R")
+# load("randy_margin_model_random_intercept_slope.Rdata")
+load("R/train_test.rda")
+```
+
+## setting
+
+```{r}
+train_data <- train %>% 
+  mutate(id = as.character(id),
+         group = "Training")
+test_data <- test %>% 
+  mutate(id = as.character(id),
+         group = "Testing")
+
+test_baseline <-
+  test_data %>%
+  group_by(id) %>%
+  slice(1L)
+
+id_test <- unique(test_data$id)
+
+knots = c(10, 12, 15)
+pred_time = c(3, 6, 9, 12)
+bks <- brokenstick::brokenstick(ht ~ time | id,
+                                data = train_data,
+                                knots = knots)
+dataset_baseline <- train_data %>%
+      group_by(id) %>%
+      slice(1L) %>%
+      dplyr::select(-time) %>%
+      dplyr::select(baseline = ht, everything())
+print("2.baseline works")
+print("this is the dataset_baseline--------------------")
+
+bks_pred_knots <- predict(bks,
+                          x = pred_time,
+                          shape = "long",
+                          include_data = FALSE) %>%
+  dplyr::select(id, time, `.pred`)
+print("this is bks_pred_knots for training --------------------")
+
+train_pred <-
+  bks_pred_knots %>%
+  # pivot_wider(names_from = time,
+  #             values_from = .pred) %>%
+  select_if(not_all_na) %>%
+  # dplyr::select(target = as.character(match_time),
+  #               everything()) %>%
+  full_join(dataset_baseline, by = c("id")) %>%
+  mutate(timef = paste0("time", time))
+
+## checkpoint ------------------------------------------------------------------
+bks_pred_knots <- predict(bks,
+                          x = pred_time,
+                          shape = "long",
+                          # group = train_data$id,
+                          include_data = FALSE) %>%
+  dplyr::select(id, time, `.pred`)
+print("this is bks_pred_knots for training --------------------")
+
+train_pred <- bks_pred_knots %>%
+  select_if(not_all_na)
+
+train_new <- full_join(train_pred, dataset_baseline)
+## add one factor time_var variable
+
+test_new <- test_baseline %>%
+  mutate(time = list(pred_time)) %>%
+  unnest() %>%
+  rename(baseline = ht)
+
+## 1.2 linear fitting
+lm_bks_train <- lm("`.pred` ~ as.factor(time) * sex * genotype * baseline",
+                   data = train_new)
+predicted_train <- predict(lm_bks_train)
+predicted_test<- predict(lm_bks_train, newdata = test_new)
+
+
+lb_train <- train_new %>%
+  ungroup() %>%
+  mutate(lm_bks_target = predicted_train) %>%
+  dplyr::select(lm_bks_target) %>%
+  cbind(train_pred) %>%
+  as.data.frame() %>%
+  dplyr::select(contains(c("id", "time", "lm_bks_target"))) %>%
+  as.matrix() %>%
+  as.data.frame() %>%
+  mutate(lm_bks_target = as.numeric(lm_bks_target))
+
+
+test_new[, "lm_bks_target"] = as.numeric(predicted_test)
+lb_test <- test_new %>%
+  dplyr::select(contains(c("id", "time", "lm_bks")))
+
+```
+
+## testing
+
+
+```{r}
+id = 159662
+# id =  154526
+test_eld_n10 <- pred_matching(
+                 lb_data = lb_train,
+                 lb_test = lb_test,
+                 train_data = train_data,
+                 test_data = test_data,
+                 match_methods = "euclidean",
+                 match_num = 10,
+                 gamlss_formula = "ht ~ cs(time, df = 3)",
+                 gamsigma_formula = "~ cs(time, df = 1)",
+                 match_plot = TRUE,
+                 predict_plot = TRUE,
+                 sbj = id)
+test_mhl_n10 <- pred_matching(
+                   lb_data = lb_train,
+                   lb_test = lb_test,
+                   train_data = train_data,
+                   test_data = test_data,
+                   match_methods = "mahalanobis",
+                   match_num = 10,
+                   gamlss_formula = "ht ~ cs(time, df = 3)",
+                   gamsigma_formula = "~ cs(time, df = 1)",
+                 match_plot = TRUE,
+                 predict_plot = TRUE,
+                   sbj = id)
+## mahalanobis p value matching
+test_mhl_p90 <- try(pred_matching(
+                 lb_data = lb_train,
+                 lb_test = lb_test,
+                 train_data = train_data,
+                 test_data = test_data,
+                 match_methods = "mahalanobis",
+                 match_alpha = 0.95,
+                 gamlss_formula = "ht ~ cs(time, df = 3)",
+                 gamsigma_formula = "~ cs(time, df = 1)",
+                 match_plot = TRUE,
+                 predict_plot = TRUE,
+                 sbj = id))
+
+## mahalanobis p value matching
+test_mhl_p80 <- try(pred_matching(
+                 lb_data = lb_train,
+                 lb_test = lb_test,
+                 train_data = train_data,
+                 test_data = test_data,
+                 match_methods = "mahalanobis",
+                 match_alpha = 0.8,
+                 gamlss_formula = "ht ~ cs(time, df = 3)",
+                 gamsigma_formula = "~ cs(time, df = 1)",
+                 match_plot = TRUE,
+                 predict_plot = TRUE,
+                 sbj = id))
+test_sgl10_n10 <- pred_matching(
+                     lb_data = lb_train,
+                     lb_test = lb_test,
+                     train_data = train_data,
+                     test_data = test_data,
+                     match_methods = "single",
+                     match_num = 10,
+                     match_time = 12,
+                     match_alpha = NULL,
+                     gamlss_formula = "ht ~ cs(time, df = 3)",
+                     gamsigma_formula = "~ cs(time, df = 1)",
+                 match_plot = TRUE,
+                 predict_plot = TRUE,
+                     sbj = id)
+
+
+sgl10_n10_m <- test_sgl10_n10$matching_trajectory + 
+  ylim(c(80, 210)) +
+  labs(title = parse(text = latex2exp::TeX("$S_{\\kappa = 10}$")),
+       y = "Height (cm)",
+       x = "Time (yr)") +
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        title = element_text(size = 20),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  theme(plot.margin=unit(c(-1.7, 0.2, 0, 0.2), 'cm'), 
+        plot.title = element_text(hjust = 0.1, vjust = -10))
+
+
+eld_n10_m <- test_eld_n10$matching_trajectory + 
+  ylim(c(80, 210)) +
+  labs(title = parse(text = latex2exp::TeX("$E_{\\kappa = 10}$")),
+       y = "Height (cm)",
+       x = "Time (yr)") +
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        title = element_text(size = 20),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  theme(plot.margin=unit(c(-1.7, 0.2, 0, 0.2), 'cm'),
+        plot.title = element_text(hjust = 0.1, vjust = -10))
+
+
+
+mhl_n10_m <- test_mhl_n10$matching_trajectory + 
+  ylim(c(80, 210)) +
+  labs(title = parse(text = latex2exp::TeX("$M_{\\kappa = 10}$")),
+       y = "Height (cm)",
+       x = "Time (yr)") +
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        title = element_text(size = 20),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  theme(plot.margin=unit(c(-1.7, 0.2, 0, 0.2), 'cm'), 
+        plot.title = element_text(hjust = 0.1, vjust = -10))
+
+
+
+mhl_p90_m <- test_mhl_p90$matching_trajectory + 
+  ylim(c(80, 210)) +
+  labs(title = parse(text = latex2exp::TeX("$M_{\\alpha = 0.9}$")),
+       y = "Height (cm)",
+       x = "Time (yr)") +
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        title = element_text(size = 20),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  theme(plot.margin=unit(c(-1.7, 0.2, 0, 0.2), 'cm'), 
+        plot.title = element_text(hjust = 0.1, vjust = -10))
+
+mhl_p80_m <- test_mhl_p80$matching_trajectory + 
+  ylim(c(80, 210)) +
+  labs(title = parse(text = latex2exp::TeX("$M_{\\alpha = 0.8}$")),
+       y = "Height (cm)",
+       x = "Time (yr)") +
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        title = element_text(size = 20),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  theme(plot.margin=unit(c(-1.7, 0.2, 0, 0.2), 'cm'), 
+        plot.title = element_text(hjust = 0.1, vjust = -10))
+
+sgl10_n10_t <- test_sgl10_n10$predictive_centiles + 
+  ylim(c(80, 210)) +
+  labs(title = parse(text = latex2exp::TeX("$S_{\\kappa = 10}$")),
+       y = "Height (cm)",
+       x = "Time (yr)") +
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        title = element_text(size = 20),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  theme(plot.margin=unit(c(-1.7, 0.2, 0, 0.2), 'cm'), 
+        plot.title = element_text(hjust = 0.1, vjust = -10))
+
+
+eld_n10_t <- test_eld_n10$predictive_centiles + 
+    ylim(c(80, 210)) +
+  labs(title = parse(text = latex2exp::TeX("$E_{\\kappa = 10}$")),
+       y = "Height (cm)",
+       x = "Time (yr)") +
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        title = element_text(size = 20),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  theme(plot.margin=unit(c(-1.7, 0.2, 0, 0.2), 'cm'), 
+        plot.title = element_text(hjust = 0.1, vjust = -10))
+
+
+mhl_n10_t <- test_mhl_n10$predictive_centiles +
+      ylim(c(80, 210)) +
+  labs(title = parse(text = latex2exp::TeX("$M_{\\kappa = 10}$")),
+       y = "Height (cm)",
+       x = "Time (yr)") +
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        title = element_text(size = 20),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  theme(plot.margin=unit(c(-1.7, 0.2, 0, 0.2), 'cm'),
+        plot.title = element_text(hjust = 0.1, vjust = -10))
+
+
+mhl_p90_t <- test_mhl_p90$predictive_centiles + 
+      ylim(c(80, 210)) +
+  labs(title = parse(text = latex2exp::TeX("$M_{\\alpha = 0.90}$")),
+       y = "Height (cm)",
+       x = "Time (yr)") +
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        title = element_text(size = 20),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  theme(plot.margin=unit(c(-1.7, 0.2, 0, 0.2), 'cm'), 
+        plot.title = element_text(hjust = 0.1, vjust = -10))
+
+mhl_p80_t <- test_mhl_p80$predictive_centiles + 
+      ylim(c(80, 210)) +
+  labs(title = parse(text = latex2exp::TeX("$M_{\\alpha = 0.80}$")),
+       y = "Height (cm)",
+       x = "Time (yr)") +
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        title = element_text(size = 20),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  theme(plot.margin=unit(c(-1.7, 0.2, 0, 0.2), 'cm'), 
+        plot.title = element_text(hjust = 0.1, vjust = -10))
+
+```
+
+
+
+```{r, fig.height= 12, fig.width=10}
+library(ggpubr)
+
+figure1 <- ggarrange(sgl10_n10_m, sgl10_n10_t,
+                    # + theme(axis.text.x=element_blank()),
+                    eld_n10_m, eld_n10_t,
+                    # + theme(axis.text.x=element_blank()),
+                    mhl_n10_m, mhl_n10_t,
+                    # + theme(axis.text.x=element_blank()), 
+                    mhl_p80_m, mhl_p80_t,
+                    mhl_p90_m, mhl_p90_t,
+                    # + theme(axis.text.x=element_blank()),
+                    ncol = 2, nrow = 5) + 
+  theme(plot.margin = margin(2, 0.5, 0.5, 0.5, "cm"))
+
+
+figure1
+ggsave(filename = paste0("figure/S05_trajectory_final_plots_id_", id, "_", Sys.Date(), "_2alpha.png"))
+```
+
+
+<!-- ```{r, fig.height= 12, fig.width=10} -->
+
+<!-- figure2 <- ggarrange(sgl10_n10_m, sgl10_n10_t, -->
+<!--                     # + theme(axis.text.x=element_blank()), -->
+<!--                     eld_n10_m, eld_n10_t, -->
+<!--                     # + theme(axis.text.x=element_blank()), -->
+<!--                     mhl_n10_m, mhl_n10_t, -->
+<!--                     # + theme(axis.text.x=element_blank()),  -->
+<!--                     # mhl_p80_m, mhl_p80_t, -->
+<!--                     mhl_p90_m, mhl_p90_t, -->
+<!--                     # + theme(axis.text.x=element_blank()), -->
+<!--                     ncol = 2, nrow = 4)  +  -->
+<!--   theme(plot.margin = margin(2, 1, 2, 1, "cm")) -->
+
+
+<!-- figure2 -->
+<!-- ggsave(filename = paste0("figure/S05_trajectory_final_plots_id_", id, "_", Sys.Date(), ".png")) -->
+```
+
+
+
+
+
+
+

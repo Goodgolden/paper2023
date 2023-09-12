@@ -1,0 +1,223 @@
+---
+title: "09_merge_figures"
+author: "randy"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warnings = FALSE,
+                      message = FALSE,
+                      comment = "#>",
+                      #results = "hide",
+                      digits = 4,
+                      error = FALSE)
+
+## clean the R environment
+graphics.off()
+rm(list = ls())
+freshr::freshr()
+
+## load packages
+library(here, quietly = TRUE)
+library(tidyverse, quietly = TRUE)
+library(gtsummary, quietly = TRUE)
+library(flextable, quietly = TRUE)
+library(png)
+library(grid)
+library(gridExtra)
+library(matrixStats)
+
+## check the directory for the file
+# here::dr_here()
+here::set_here()
+
+## the figure or results should be saved 
+# paste0("foldername/Sfilename_workingresult_", 
+#.       Sys.Date(), ".filetype")
+```
+
+```{r}
+plot1 <- readPNG('figure/S06_sim1000_ss500_anchor6time_5cov90_2023-09-01.png')
+plot2 <- readPNG('figure/S06_sim1000_ss500_anchor4time_5cov90_2023-09-01.png')
+plot3 <- readPNG('figure/S06_sim1000_ss500_anchor3time_5cov90_2023-09-01.png')
+
+plot4 <- readPNG('figure/S06_sim1000_ss500_anchor6time_4cov80_2023-09-01.png')
+plot5 <- readPNG('figure/S06_sim1000_ss500_anchor4time_4cov80_2023-09-01.png')
+plot6 <- readPNG('figure/S06_sim1000_ss500_anchor3time_4cov80_2023-09-01.png')
+
+plot7 <- readPNG('figure/S07_sim1000_ss900_anchor3time_4cov80_2023-09-02.png')
+plot8 <- readPNG('figure/S07_sim1000_ss900_anchor4time_4cov80_2023-09-03.png')
+plot9 <- readPNG('figure/S07_sim1000_ss900_anchor6time_4cov80_2023-09-03.png')
+
+plot10 <- readPNG('figure/S07_sim1000_ss900_anchor3time_5cov90_2023-09-02.png')
+plot11 <- readPNG('figure/S07_sim1000_ss900_anchor4time_5cov90_2023-09-03.png')
+plot12 <- readPNG('figure/S07_sim1000_ss900_anchor6time_5cov90_2023-09-03.png')
+
+grid.arrange(rasterGrob(plot1),
+             rasterGrob(plot2),
+             rasterGrob(plot3),
+             rasterGrob(plot4),
+             rasterGrob(plot5),
+             rasterGrob(plot6), 
+             rasterGrob(plot7),
+             rasterGrob(plot8),
+             rasterGrob(plot9), 
+             rasterGrob(plot10),
+             rasterGrob(plot11),
+             rasterGrob(plot12), 
+             ncol = 3)
+
+
+library(matrixStats)
+```
+
+
+
+
+```{r}
+tbl_sum <- function(data = sim_ss500, 
+                    what) {
+  data0 <- data %>% 
+    filter(term == what) 
+  
+  if (what == "mse") {
+    data1 <- data0 %>%
+      dplyr::select(-"term") %>% 
+      mutate_all(as.numeric) %>%
+      mutate_all(sqrt) %>%
+            as.matrix()
+  }
+  else {
+    data1 <- data0 %>%
+    dplyr::select(-"term") %>% 
+    mutate_all(as.numeric) %>%
+    as.matrix()   
+  }
+
+  result <- rbind(Mean = colMeans(data1), 
+                  Median = colMedians(data1), 
+                  Sd = colSds(data1)) %>% 
+    as.data.frame()
+  return(result)
+}
+```
+
+
+```{r}
+load("~/Desktop/paper2023/data/S06_sim1000_ss500_anchor6time_0summary_2023-08-29.Rdata")
+s500_a6 <- map(list("bias", "mse", "coverage50",
+                    "coverage80", "coverage90"), 
+               ~tbl_sum(what= .)) %>%
+  cbind() %>%
+  as.data.frame() %>% 
+  unnest() %>% 
+  mutate(stat = rep(c("Mean", "Median", "Sd"), 5),
+         term = rep(c("bias", "mse", "cov50", 
+                      "cov80", "cov90"), each = 3),
+         time = "t(6,8,10,12,14,15)",
+         ss = 500) 
+
+
+load("~/Desktop/paper2023/data/S07_sim1000_ss900_anchor6time_0summary_2023-09-02.Rdata")
+s900_a6 <- map(list("bias", "mse", "coverage50",
+                    "coverage80", "coverage90"), 
+               ~tbl_sum(what= .)) %>%
+  cbind() %>%
+  as.data.frame() %>% 
+  unnest() %>% 
+  mutate(stat = rep(c("Mean", "Median", "Sd"), 5),
+         term = rep(c("bias", "mse", "cov50", 
+                      "cov80", "cov90"), each = 3),
+         time = "t(6,8,10,12,14,15)",
+         ss = 900) 
+
+load("~/Desktop/paper2023/data/S06_sim1000_ss500_anchor4time_0summary_2023-08-31.Rdata")
+s500_a4 <- map(list("bias", "mse", "coverage50", 
+                    "coverage80", "coverage90"),
+               ~tbl_sum(sim_ss500, what= .)) %>%
+  cbind() %>%
+  as.data.frame() %>% 
+  unnest() %>% 
+  mutate(stat = rep(c("Mean", "Median", "Sd"), 5),
+         term = rep(c("bias", "mse", "cov50", 
+                      "cov80", "cov90"), each = 3),
+         time = "t(6,9,12,15)",
+         ss = 500)
+load("~/Desktop/paper2023/data/S07_sim1000_ss900_anchor4time_0summary_2023-09-03.Rdata")
+s900_a4 <- map(list("bias", "mse", "coverage50", 
+                    "coverage80", "coverage90"),
+               ~tbl_sum(sim_ss, what= .)) %>%
+  cbind() %>%
+  as.data.frame() %>% 
+  unnest() %>% 
+  mutate(stat = rep(c("Mean", "Median", "Sd"), 5),
+         term = rep(c("bias", "mse", "cov50", 
+                      "cov80", "cov90"), each = 3),
+         time = "t(6,9,12,15)",
+         ss = 900)
+
+
+load("~/Desktop/paper2023/data/S06_sim1000_ss500_anchor3time_0summary_2023-08-31.Rdata")
+s500_a3 <- map(list("bias", "mse", "coverage50", 
+                    "coverage80", "coverage90"), 
+               ~tbl_sum(sim_ss500, what= .)) %>%
+  cbind() %>% 
+  as.data.frame() %>% 
+  unnest() %>% 
+  mutate(stat = rep(c("Mean", "Median", "Sd"), 5),
+         term = rep(c("bias", "mse", "cov50", 
+                      "cov80", "cov90"), each = 3))  %>%
+  cbind() %>%
+  as.data.frame() %>% 
+  unnest() %>% 
+  mutate(stat = rep(c("Mean", "Median", "Sd"), 5),
+         term = rep(c("bias", "mse", "cov50", 
+                      "cov80", "cov90"), each = 3),
+         time = "t(6,9,12)",
+         ss = 500)
+load("~/Desktop/paper2023/data/S07_sim1000_ss900_anchor3time_0summary_2023-09-01.Rdata")
+s900_a3 <- map(list("bias", "mse", "coverage50", 
+                    "coverage80", "coverage90"),
+               ~tbl_sum(sim_ss, what= .)) %>%
+  cbind() %>%
+  as.data.frame() %>% 
+  unnest() %>% 
+  mutate(stat = rep(c("Mean", "Median", "Sd"), 5),
+         term = rep(c("bias", "mse", "cov50", 
+                      "cov80", "cov90"), each = 3),
+         time = "t(6,9,12)",
+         ss = 900)
+
+s500_all <- rbind(s500_a3, s500_a4, s500_a6) %>% as.data.frame() %>% filter(stat %in% c("Mean", "Sd"))
+s500_final <- s500_all %>% pivot_wider(names_from = stat, values_from = 1:9)
+
+
+s900_all <- rbind(s900_a3, s900_a4, s900_a6) %>% as.data.frame() %>% filter(stat %in% c("Mean", "Sd"))
+s900_final <- s900_all %>% pivot_wider(names_from = stat, values_from = 1:9)
+```
+
+
+
+```{r}
+
+result <- rbind(s500_final, s900_final) %>%
+  as.data.frame() %>%
+  dplyr::select(ss, time, term, sgl_n_Mean, sgl_n_Sd, everything()) 
+
+# result <- read_csv("figure/S09_final_simulation_study_results.csv")
+View(result)
+
+# results <- read_excel("figure/S09_final_simulation_study_results.xlsx") %>%
+#   as.data.frame() %>%
+#   dplyr::select(-1) %>%
+#   dplyr::select("sample size" = 1, "time" = 2, everything())
+# 
+# options(digits = 3)
+library(xtable)
+
+print(xtable(result, type = "latex"), 
+      file = paste0("figure/S09_final_simulation_", Sys.Date(), ".tex"))
+```
+

@@ -1,0 +1,201 @@
+---
+title: "02_table2_plmlmm"
+author: "randy"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+# knitr::opts_chunk(echo = TRUE,
+#                   # warnings = FALSE,
+#                   # message = FALSE,
+#                   # comment = "#>",
+#                   # results = "hide",
+#                   error = FALSE)
+
+## clean the R environment
+graphics.off()
+rm(list = ls())
+freshr::freshr()
+
+## load packages
+library(here, quietly = TRUE)
+library(tidyverse, quietly = TRUE)
+
+## check the directory for the file
+# here::dr_here()
+here::set_here()
+
+## the figure or results should be saved 
+# paste0("foldername/Sfilename_workingresult_", 
+#.       Sys.Date(), ".filetype")
+```
+
+
+
+```{r}
+source("R/07_summarization.R")
+## the R file below is the code for results
+# source("02_table2_plmlmm_code.R")
+file_location <- "results/result_anchors_2023-08-23/"
+files <- list.files(path = "results/result_anchors_2023-08-23/", pattern = ".Rdata")
+files
+```
+
+```{r}
+anchortime <- map_dfr(files, ~pullout(file_location, .)) %>%
+  mutate(term = rep(c("bias", "mse", "cov50", "cov80", "cov90"), 8))
+```
+
+
+```{r}
+options(digits = 4)
+
+bias <- anchortime %>%
+  filter(term == "bias") %>% 
+  unnest() %>%
+  mutate(Time = c("t(3, 6, 9, 12)",
+                  "t(4, 8, 12)", 
+                  "t(5, 10, 15)", 
+                  "t(6, 10, 11, 12)",
+                  "t(6, 9, 12, 15)", 
+                  "t(6, 9, 12)0.8",
+                  "t(6, 9, 12)0.9",
+                  "t(8, 10, 12)")) %>%
+  mutate(Time = factor(Time, levels = c("t(4, 8, 12)", 
+                                        "t(5, 10, 15)",
+                                        "t(6, 9, 12)0.8", 
+                                        "t(6, 9, 12)0.9",
+                                        "t(8, 10, 12)",
+                                        "t(3, 6, 9, 12)",
+                                        "t(6, 10, 11, 12)",
+                                        "t(6, 9, 12, 15)"))) %>%
+  arrange(Time) %>%
+  dplyr::select(-term) %>%
+  dplyr::select(Time, sgl_n, eld_n, mhl_n, mhl_p, lmm)
+  
+
+rmse <- anchortime %>%
+  filter(term == "mse") %>% 
+  unnest() %>%
+  mutate(Time = c("t(3, 6, 9, 12)",
+                  "t(4, 8, 12)", 
+                  "t(5, 10, 15)", 
+                  "t(6, 10, 11, 12)",
+                  "t(6, 9, 12, 15)", 
+                  "t(6, 9, 12)0.8",
+                  "t(6, 9, 12)0.9",
+                  "t(8, 10, 12)")) %>%
+  mutate(Time = factor(Time, levels = c("t(4, 8, 12)", 
+                                        "t(5, 10, 15)",
+                                        "t(6, 9, 12)0.8", 
+                                        "t(6, 9, 12)0.9",
+                                        "t(8, 10, 12)",
+                                        "t(3, 6, 9, 12)",
+                                        "t(6, 10, 11, 12)",
+                                        "t(6, 9, 12, 15)"))) %>%
+  mutate_if(is.numeric, sqrt) %>%
+  arrange(Time) %>%
+  dplyr::select(-term) %>%
+  dplyr::select(Time, sgl_n, eld_n, mhl_n, mhl_p, lmm)
+
+cov50 <- anchortime %>%
+  filter(term == "cov50") %>% 
+  unnest() %>%
+  unnest() %>%
+  mutate(Time = c("t(3, 6, 9, 12)",
+                  "t(4, 8, 12)", 
+                  "t(5, 10, 15)", 
+                  "t(6, 10, 11, 12)",
+                  "t(6, 9, 12, 15)", 
+                  "t(6, 9, 12)0.8",
+                  "t(6, 9, 12)0.9",
+                  "t(8, 10, 12)")) %>%
+  mutate(Time = factor(Time, levels = c("t(4, 8, 12)", 
+                                        "t(5, 10, 15)",
+                                        "t(6, 9, 12)0.8", 
+                                        "t(6, 9, 12)0.9",
+                                        "t(8, 10, 12)",
+                                        "t(3, 6, 9, 12)",
+                                        "t(6, 10, 11, 12)",
+                                        "t(6, 9, 12, 15)"))) %>%
+  arrange(Time) %>%
+  dplyr::select(-term) %>%
+  dplyr::select(Time, sgl_n, eld_n, mhl_n, mhl_p, lmm)
+
+
+cov80 <- anchortime %>%
+  filter(term == "cov80") %>% 
+  unnest() %>%
+  mutate(Time = c("t(3, 6, 9, 12)",
+                  "t(4, 8, 12)", 
+                  "t(5, 10, 15)", 
+                  "t(6, 10, 11, 12)",
+                  "t(6, 9, 12, 15)", 
+                  "t(6, 9, 12)0.8",
+                  "t(6, 9, 12)0.9",
+                  "t(8, 10, 12)")) %>%
+  mutate(Time = factor(Time, levels = c("t(4, 8, 12)", 
+                                        "t(5, 10, 15)",
+                                        "t(6, 9, 12)0.8", 
+                                        "t(6, 9, 12)0.9",
+                                        "t(8, 10, 12)",
+                                        "t(3, 6, 9, 12)",
+                                        "t(6, 10, 11, 12)",
+                                        "t(6, 9, 12, 15)"))) %>%
+  arrange(Time) %>%
+  dplyr::select(-term) %>%
+  dplyr::select(Time, sgl_n, eld_n, mhl_n, mhl_p, lmm)
+
+cov90 <- anchortime %>%
+  filter(term == "cov90") %>% 
+  unnest() %>%
+  mutate(Time = c("t(3, 6, 9, 12)",
+                  "t(4, 8, 12)", 
+                  "t(5, 10, 15)", 
+                  "t(6, 10, 11, 12)",
+                  "t(6, 9, 12, 15)", 
+                  "t(6, 9, 12)0.8",
+                  "t(6, 9, 12)0.9",
+                  "t(8, 10, 12)")) %>%
+  mutate(Time = factor(Time, levels = c("t(4, 8, 12)", 
+                                        "t(5, 10, 15)",
+                                        "t(6, 9, 12)0.8", 
+                                        "t(6, 9, 12)0.9",
+                                        "t(8, 10, 12)",
+                                        "t(3, 6, 9, 12)",
+                                        "t(6, 10, 11, 12)",
+                                        "t(6, 9, 12, 15)"))) %>%
+  arrange(Time) %>%
+  dplyr::select(-term) %>%
+  dplyr::select(Time, sgl_n, eld_n, mhl_n, mhl_p, lmm)
+
+bias
+rmse
+cov50
+cov80
+cov90
+
+```
+
+## saving the files as .tex
+
+```{r}
+library(xtable)
+
+print(xtable(bias, type = "latex"), 
+      file = paste0("figure/S02_anchor_time_090_bias_", Sys.Date(), ".tex"))
+print(xtable(rmse, type = "latex"), 
+      file = paste0("figure/S02_anchor_time_090_rmse_", Sys.Date(), ".tex"))
+print(xtable(cov50, type = "latex"), 
+      file = paste0("figure/S02_anchor_time_090_cov50_", Sys.Date(), ".tex"))
+print(xtable(cov80, type = "latex"), 
+      file = paste0("figure/S02_anchor_time_090_cov80_", Sys.Date(), ".tex"))
+print(xtable(cov90, type = "latex"), 
+      file = paste0("figure/S02_anchor_time_090_cov90_", Sys.Date(), ".tex"))
+```
+
+
+

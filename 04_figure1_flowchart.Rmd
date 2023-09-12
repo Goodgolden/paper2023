@@ -1,0 +1,288 @@
+---
+title: "04_figure1_flowchart"
+author: "randy"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+## clean the R environment
+rm(list = ls())
+freshr::freshr()
+
+## load packages
+library(here)
+library(tidyverse)
+library(rsvg)
+library(xml2)
+
+library(DiagrammeR)
+library(DiagrammeRsvg)
+
+## check the directory for the file
+# here::dr_here()
+# here::set_here()
+```
+
+
+## flowchart for data cleaning
+
+
+```{r "flowchart_tidy"}
+flowchart1 <- DiagrammeR::grViz("
+digraph graph2 {
+
+graph [layout = dot]
+
+# node definitions with substituted label text
+node [shape = rectangle, width = 4, fillcolor = Biege]
+a [label = 'Raw Data: \n total number of children \n registered in the EPIC dataset \n(n = 1772)']
+b [label = 'Eligible Subjects: \n  (n = 1370)']
+c [label = 'Working Data: \n with all eligible subjects \n randomly split dataset into two subsets']
+d [label = 'Training Data:\n serving as a pool for selecting \n the set of information donors \n (n = 913)']
+e [label = 'Testing Data:\n serving as targets for prediction validation \n and evaluationfor model performance \n (n = 457)']
+
+ c -> {d e}
+
+# These are the main nodes at top of graph
+  a -> b
+  
+  [label = 
+  <
+        Subjects Excluded:<br ALIGN = 'LEFT'/> 
+        &nbsp; &#8226; No missing baseline variables<br ALIGN = 'LEFT'/>
+         &nbsp; &#8226; Minimal 10 times of visits<br ALIGN = 'LEFT'/> 
+        &nbsp; &#8226; Minimal 5 years of following up<br ALIGN = 'LEFT'/>
+         &nbsp; &#8226; Minimal age of 4 registerd in the study<br ALIGN = 'LEFT'/>
+        &nbsp; (n = 402) <br ALIGN = 'LEFT'/> 
+    >
+  ]
+ 
+ b -> c
+ 
+ [label =
+ <
+         Data Cleaning:<br ALIGN = 'LEFT'/> 
+         &nbsp;     &#8226; Remove the time points before age 3 <br ALIGN = 'LEFT'/>
+          &nbsp;     &#8226; Realign with the earliest age <br ALIGN = 'LEFT'/>
+          &nbsp;     &#8226; Covert age into time variable<br ALIGN = 'LEFT'/> 
+  >
+ ]
+
+}
+
+")
+
+
+## see the flowchart
+flowchart1
+# flowchart1 %>%
+#   export_svg() %>%
+#   read_xml() %>%
+#   write_xml(paste0("~/Desktop/project/plmlmm/paper/figure/00_plmlmm_data_cleaning", Sys.Date(), ".svg"))
+
+## save the flowchart
+flowchart1 %>%
+  export_svg() %>% 
+  charToRaw() %>% 
+  rsvg_png(paste0("figure/S04_plmlmm_data_cleaning_", Sys.Date(), ".png"))
+# export_graph(flowchart,
+# file_name = "final/flowchart_graph.png",
+# file_type = "png")
+```
+
+
+## flowchart for algorithm
+
+```{r "flowchart_plm"}
+flowchart2 <- DiagrammeR::grViz(
+"digraph graph2 {
+
+graph [layout = dot]
+
+# node definitions with substituted label text
+node [shape = rectangle, width = 4, fillcolor = Biege]
+a [label = 
+  <
+    <b> </b> <br ALIGN = 'CENTER'/> 
+    <b>Imputing: </b> <br ALIGN = 'CENTER'/> 
+    &nbsp; &#8226; Brokenstick model prediction <br ALIGN = 'LEFT'/>
+    &nbsp; &#8226; Linear model prediction<br ALIGN = 'LEFT'/>
+    >
+  ]
+  
+b [label =
+ <
+   <b> </b> <br ALIGN = 'CENTER'/> 
+   <b>Matching: </b> <br ALIGN = 'CENTER'/> 
+   &nbsp; &#8226; Single-time matching <br ALIGN = 'LEFT'/>
+    &nbsp; &#8226; Multiple-time matching<br ALIGN = 'LEFT'/>
+    &nbsp; &#8226; Matching criterion<br ALIGN = 'LEFT'/> 
+  >
+ ]
+ 
+ 
+c [label =
+ <
+   <b> </b> <br ALIGN = 'CENTER'/> 
+   <b>Predicting: </b> <br ALIGN = 'CENTER'/> 
+   &nbsp; &#8226; Median for predictive trajectory <br ALIGN = 'LEFT'/>
+    &nbsp; &#8226; Centiles for predictive intervals <br ALIGN = 'LEFT'/>
+  >
+ ]
+
+# These are the main nodes at top of graph
+
+  a -> b
+  
+  b -> c
+}
+")
+
+
+## see the flowchart
+flowchart2
+# flowchart1 %>%
+#   export_svg() %>%
+#   read_xml() %>%
+#   write_xml(paste0("~/Desktop/project/plmlmm/paper/figure/00_plmlmm_data_cleaning", Sys.Date(), ".svg"))
+
+## save the flowchart
+flowchart2 %>%
+  export_svg() %>% 
+  charToRaw() %>% 
+  rsvg_png(paste0("figure/S04_plmlmm_step_algorithm_", Sys.Date(), ".png"))
+# export_graph(flowchart,
+# file_name = "final/flowchart_graph.png",
+# file_type = "png")
+```
+
+
+## flowchart for upgraded phd work
+
+```{r "flowchart_phd"}
+# install.packages("DiagrammeR")
+flowchart3 <- DiagrammeR::grViz(
+"digraph graph2 {
+
+graph [layout = dot]
+edge [color = gray]
+
+# node definitions with substituted label text
+graph [nodesep = 0.2, ranksep = 0.3]
+node [shape = rectangle, width = 3, fillcolor = Biege]
+imputation [label = 
+  <
+    <b> </b> <br ALIGN = 'CENTER'/> 
+    <b>1. Imputing: </b> <br ALIGN = 'LEFT'/> 
+    &nbsp; &#8226; Brokenstick model prediction <br ALIGN = 'LEFT'/>
+     &nbsp; &#8226; Linear model prediction<br ALIGN = 'LEFT'/>
+    >;
+    fontcolor = '#5d5d5d'
+  ]
+  imputation [color = gray]
+  
+distance [label =
+ <
+   <b> </b> <br ALIGN = 'CENTER'/> 
+   <b>2. Matching: </b> <br ALIGN = 'LEFT'/> 
+   &nbsp; &#8226; Single-time matching <br ALIGN = 'LEFT'/>
+    &nbsp; &#8226; Multiple-time matching<br ALIGN = 'LEFT'/>
+    &nbsp; &#8226; Matching criterion<br ALIGN = 'LEFT'/> 
+  >;
+  fontcolor = '#5d5d5d'
+ ]
+ distance [color = gray]
+ 
+prediction [label =
+ <
+   <b> </b> <br ALIGN = 'CENTER'/> 
+   <b>3. Predicting: </b> <br ALIGN = 'LEFT'/> 
+   &nbsp; &#8226; Median for predictive trajectory <br ALIGN = 'LEFT'/>
+    &nbsp; &#8226; Centiles for predictive intervals <br ALIGN = 'LEFT'/>
+  >;
+  fontcolor = '#5d5d5d'
+ ]
+ prediction [color = gray]
+ 
+ update_imputation [label =
+ <
+   <b> </b> <br ALIGN = 'LEFT'/> 
+   <b>INLA Smoothing: </b> <br ALIGN = 'LEFT'/> 
+     Random Walk (RW)
+     <br ALIGN = 'LEFT'/> 
+     Autoregression (AR) <br ALIGN = 'LEFT'/>
+   <br ALIGN = 'LEFT'/>
+   <b>  Kernel Smoothing: </b> <br ALIGN = 'LEFT'/> 
+     Kernel regression 
+     <br ALIGN = 'LEFT'/> 
+   <br ALIGN = 'LEFT'/>
+   <b>  Multiple LM: </b> <br ALIGN = 'LEFT'/> 
+     LM at each anchor time point \n<br ALIGN = 'LEFT'/>
+  >
+ ]
+ 
+ update_distance [label =
+ <
+   <b> </b> <br ALIGN = 'CENTER'/> 
+   <b>Inversed Distance Weights: </b> <br ALIGN = 'LEFT'/> 
+     For Euclidean distance and single predictive matching 
+   <br ALIGN = 'LEFT'/>
+   <br ALIGN = 'LEFT'/>
+   <b>  Chi-squared Weights: </b> <br ALIGN = 'LEFT'/> 
+     For Mahalanobis distance matching <br ALIGN = 'LEFT'/>
+  >
+ ]
+
+ update_model [label =
+ <
+   <b> </b> <br ALIGN = 'CENTER'/> 
+   <b>Weighted Regression: </b> <br ALIGN = 'LEFT'/> 
+     Using inversed distance weights or Chi-squared p-values 
+   <br ALIGN = 'LEFT'/>
+   <br ALIGN = 'LEFT'/>
+   <b>  Penalized Regression: </b> <br ALIGN = 'LEFT'/> 
+     Lasso or Ridge regression Penalization on the Distance 
+   <br ALIGN = 'LEFT'/>
+  >
+ ]
+
+# These are the main nodes at top of graph
+  
+  
+  imputation -> update_imputation
+  {rank = same; imputation; update_imputation}
+  
+  
+  distance -> update_distance 
+  {rank = same; distance; update_distance}
+  
+  
+  prediction -> update_model
+  {rank = same; prediction; update_model}
+  
+  update_imputation -> update_distance -> update_model [color = black]
+}
+")
+## see the flowchart
+flowchart3
+# flowchart1 %>%
+#   export_svg() %>%
+#   read_xml() %>%
+#   write_xml(paste0("~/Desktop/project/plmlmm/paper/figure/00_plmlmm_data_cleaning", Sys.Date(), ".svg"))
+
+## save the flowchart
+flowchart3 %>%
+  export_svg() %>% 
+  charToRaw() %>% 
+  rsvg_png(paste0("figure/S04_plmlmm_updated_work_", Sys.Date(), ".png"))
+# export_graph(flowchart,
+# file_name = "final/flowchart_graph.png",
+# file_type = "png")
+```
+
+
