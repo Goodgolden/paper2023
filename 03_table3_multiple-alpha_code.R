@@ -39,6 +39,7 @@ print("1. model works---------------------")
 bks <- brokenstick::brokenstick(ht ~ time | id,
                                 data = train_data,
                                 knots = knots)
+
 dataset_baseline <- train_data %>%
   group_by(id) %>%
   slice(1L) %>%
@@ -88,8 +89,6 @@ lb_train <- train_new %>%
 test_new[, "lm_bks_target"] = as.numeric(predicted_test)
 lb_test <- test_new %>%
   dplyr::select(contains(c("id", "time", "lm_bks")))
-
-
 
 
 ## test_mhl_p060-------------------
@@ -297,6 +296,9 @@ test_sgl10_n10 <- map(id_test,
                                        clear = TRUE))
 
 
+lmm_test <- lmm_pred(train_data, test_data, test_baseline)
+
+
 save(test_eld_n10,
      test_mhl_n10,
      test_mhl_p060,
@@ -311,3 +313,7 @@ save(test_eld_n10,
      file = paste0("anchor_time_", list(pred_time),
                    "_alpha_", list(alpha),
                    "_", Sys.time(), ".Rdata"))
+
+
+save(lmm_test,
+     file = paste0("results_lmm_", Sys.time(), ".Rdata"))

@@ -202,12 +202,13 @@ s900_final <- s900_all %>% pivot_wider(names_from = stat, values_from = 1:9)
 
 ```{r}
 
-result <- rbind(s500_final, s900_final) %>%
+result500 <- rbind(s500_final) %>%
   as.data.frame() %>%
-  dplyr::select(ss, time, term, sgl_n_Mean, sgl_n_Sd, everything()) 
+  dplyr::select(ss, time, term, sgl_n_Mean, sgl_n_Sd, everything()) %>% 
+  select(-contains("_Sd"), -ss)
 
 # result <- read_csv("figure/S09_final_simulation_study_results.csv")
-View(result)
+View(result500)
 
 # results <- read_excel("figure/S09_final_simulation_study_results.xlsx") %>%
 #   as.data.frame() %>%
@@ -217,7 +218,27 @@ View(result)
 # options(digits = 3)
 library(xtable)
 
-print(xtable(result, type = "latex"), 
-      file = paste0("figure/S09_final_simulation_", Sys.Date(), ".tex"))
+print(xtable(result500, type = "latex"), 
+      file = paste0("figure/S09_final_simulation_500_", Sys.Date(), ".tex")) 
+
+########################
+result900 <- rbind(s900_final) %>%
+  as.data.frame() %>%
+  dplyr::select(ss, time, term, sgl_n_Mean, sgl_n_Sd, everything()) %>%
+    select(-contains("_Sd"), -ss)
+
+# result <- read_csv("figure/S09_final_simulation_study_results.csv")
+# View(result)
+
+# results <- read_excel("figure/S09_final_simulation_study_results.xlsx") %>%
+#   as.data.frame() %>%
+#   dplyr::select(-1) %>%
+#   dplyr::select("sample size" = 1, "time" = 2, everything())
+# 
+# options(digits = 3)
+library(xtable)
+
+print(xtable(result900, type = "latex"), 
+      file = paste0("figure/S09_final_simulation_900_", Sys.Date(), ".tex"))
 ```
 

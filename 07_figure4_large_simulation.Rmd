@@ -107,7 +107,7 @@ bias_plot <- data %>%
   geom_boxplot(aes(fill = method)) +
   theme_bw() +
   labs(x = NULL) +
-  labs(y = "Bias") +
+  labs(y = "MAE") +
   ggthemes::scale_fill_tableau("Jewel Bright") + 
   ## so far the best color composition
   ggthemes::scale_colour_tableau("Jewel Bright") +

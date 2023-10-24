@@ -62,7 +62,7 @@ lmm_pred <- function(train_data,
                      baseline) {
   # baseline <- test_baseline
   ctrl <- lmeControl(opt = 'optim')
-  fitting <-  lme(ht ~ bs(time, knots = c(10, 12, 15), degree = 3) * sex - 1,
+  fitting <-  lme(ht ~ bs(time, knots = c(10, 12, 15), degree = 3) * sex + genotype - 1,
                   random = ~ 1 + time| id,
                   control = ctrl,
                   data = train_data)
@@ -79,6 +79,7 @@ lmm_pred <- function(train_data,
     level = 0.9,
     interval = "prediction",
     seed = 555) %>%
+    mutate(id = as.integer(id)) %>%
     dplyr::select(id, time,
                   # observed = ht,
                   pred,
@@ -97,6 +98,7 @@ lmm_pred <- function(train_data,
     level = 0.8,
     interval = "prediction",
     seed = 555) %>%
+    mutate(id = as.integer(id)) %>%
     dplyr::select(id, time,
                   # observed = ht,
                   pred,
@@ -114,6 +116,7 @@ lmm_pred <- function(train_data,
     level = 0.5,
     interval = "prediction",
     seed = 555) %>%
+    mutate(id = as.integer(id)) %>%
     dplyr::select(id, time,
                   # observed = ht,
                   pred,
@@ -121,12 +124,13 @@ lmm_pred <- function(train_data,
                   centile75 = upp)
 
   lmm <- lmmpred_50 %>%
+    mutate(id = as.integer(id)) %>%
     full_join(lmmpred_80) %>%
     full_join(lmmpred_90) %>%
     # mutate(time = round(time, 2)) %>%
     ## na.omit() %>%
     as.data.frame() %>%
-    mutate(id = as.character(id)) %>%
+    mutate(id = as.integer(id)) %>%
     right_join(test_data) %>%
     dplyr::filter(time != 0) %>%
     mutate(coverage50 = ifelse(ht >= `centile25` & ht <= `centile75`, 1, 0),
@@ -293,17 +297,17 @@ pred_matching <- function(lb_data,
   }
   
   subject <- lb_test %>%
-    mutate(id = as.character(id)) %>%
+    mutate(id = as.integer(id)) %>%
     dplyr::filter(id == sbj)
   
   ind_time <- test_data %>%
-    mutate(id = as.character(id)) %>%
+    mutate(id = as.integer(id)) %>%
     dplyr::filter(id == sbj)
   
   ## the matching subset
   lb_sub <- lb_data %>%
-    mutate(id = as.character(id)) %>%
-    dplyr::transmute(id = as.character(id),
+    mutate(id = as.integer(id)) %>%
+    dplyr::transmute(id = as.integer(id),
                      ## more time points for matching
                      ## adding the correlation
                      time = time,
@@ -452,20 +456,20 @@ plm_ind_plot <- function(quantile,
     geom_ribbon(data = quantile,
                 aes(x = time, ymin = q05, ymax = q95),
                 fill = "#00A9FF") +
-    geom_line(data = quantile, aes(x = time, y = q10),
-              color = "#5FBB68", linetype = "dashed") +
-    geom_line(data = quantile, aes(x = time, y = q90),
-              color = "#5FBB68", linetype = "dashed") +
-    geom_ribbon(data = quantile,
-                aes(x = time, ymin = q10, ymax = q90),
-                fill = "#5FBB68") +
-    geom_line(data = quantile, aes(x = time, y = q25),
-              color = "#F9D23C", linetype = "dashed") +
-    geom_line(data = quantile, aes(x = time, y = q75),
-              color = "#F9D23C", linetype = "dashed") +
-    geom_ribbon(data = quantile,
-                aes(x = time, ymin = q25, ymax = q75),
-                fill = "#F9D23C") +
+    # geom_line(data = quantile, aes(x = time, y = q10),
+    #           color = "#5FBB68", linetype = "dashed") +
+    # geom_line(data = quantile, aes(x = time, y = q90),
+    #           color = "#5FBB68", linetype = "dashed") +
+    # geom_ribbon(data = quantile,
+    #             aes(x = time, ymin = q10, ymax = q90),
+    #             fill = "#5FBB68") +
+    # geom_line(data = quantile, aes(x = time, y = q25),
+    #           color = "#F9D23C", linetype = "dashed") +
+    # geom_line(data = quantile, aes(x = time, y = q75),
+    #           color = "#F9D23C", linetype = "dashed") +
+    # geom_ribbon(data = quantile,
+    #             aes(x = time, ymin = q25, ymax = q75),
+    #             fill = "#F9D23C") +
     geom_line(data = quantile, aes(x = time, y = q50),
               color = "darkblue", linetype = "dashed") +
     geom_point(data = observation, aes(x = time, y = ht),
@@ -528,4 +532,142 @@ mahalanobis_n <- function(Dmatrix,
     slice(1:match_num)
   
   return(matching)
+}
+
+
+## 7.1 meanout -----------------------------------------------------------------
+meanout <- function(dataset,
+                    term = c("bias", "mse", "coverage50",
+                             "coverage80", "coverage90"),
+                    ...){
+  
+  result <- dataset %>%
+    # output_eld_n10 %>%
+    # unlist(recursive = FALSE) %>%
+    map("centiles_observed") 
+  
+  if (term != "mse") {
+    result <- result %>%
+      map(term) %>%
+      map(~mean(., na.rm = TRUE)) %>%
+      unlist() %>%
+      mean()
+  } else {
+    result <- result %>%
+      map(~.$bias ^2) %>%
+      map(~mean(., na.rm = TRUE)) %>%
+      unlist() %>%
+      mean()
+  }
+  
+  
+  return(result)
+}
+
+## 7.2 meanout -----------------------------------------------------------------
+meanall <- function(dataset,
+                    ...){
+  bias <- meanout(dataset, "bias")
+  mse <- meanout(dataset, "mse")
+  cov50 <- meanout(dataset, "coverage50")
+  cov80 <- meanout(dataset, "coverage80")
+  cov90 <- meanout(dataset, "coverage90")
+  
+  return(list(bias = bias,
+              mse = mse,
+              cov50 = cov50,
+              cov80 = cov80,
+              cov90 = cov90))
+}
+
+## 7.3 pull out the Rdata into files -------------------------------------------
+pullout <- function(location,
+                    filename) {
+  load(paste0(location, filename))
+  
+  ## eld_n test {{{-------------------------------------------------------------
+  eld_n <- meanall(test_eld_n10)
+  
+  ## mhl_n test {{{-------------------------------------------------------------
+  mhl_n <- meanall(test_mhl_n10)
+  
+  ## mhl_p test {{{-------------------------------------------------------------
+  
+  mhl_p <- meanall(test_mhl_p080)
+  ## for the large simulation we used test_mhl_p09
+  # mhl_p <- meanall(test_mhl_p09)
+  
+  ## sgl_n test {{{-------------------------------------------------------------
+  sgl_n <- meanall(test_sgl10_n10)
+  
+  if (exists("lmm_test")) {
+    lmm <- list()
+    lmm$bias <-  lmm_test %>%
+      transmute(bias = abs(pred - ht)) %>%
+      unlist() %>%
+      mean()
+    lmm$mse <-  lmm_test %>%
+      transmute(mse = (pred - ht)^2) %>%
+      unlist() %>%
+      mean()
+    lmm$cov50<- lmm_test %>%
+      dplyr::select(coverage50) %>%
+      unlist() %>%
+      mean()
+    lmm$cov80<- lmm_test %>%
+      dplyr::select(coverage80) %>%
+      unlist() %>%
+      mean()
+    lmm$cov90<- lmm_test %>%
+      dplyr::select(coverage90) %>%
+      unlist() %>%
+      mean()
+  } else {
+    lmm = NULL
+  }
+  
+  return(list(eld_n = eld_n,
+              mhl_n = mhl_n,
+              mhl_p = mhl_p,
+              sgl_n = sgl_n,
+              lmm = lmm))
+}
+
+
+
+## 7.4 pullout the time points and alpha study ------------------------------
+pulltime <- function(location, filename) {
+  load(paste0(location, filename))
+  
+  ## eld_n test {{{-------------------------------------------------------------
+  eld_n <- meanall(test_eld_n10)
+  
+  ## mhl_n test {{{-------------------------------------------------------------
+  mhl_n <- meanall(test_mhl_n10)
+  
+  ## sgl_n test {{{-------------------------------------------------------------
+  sgl_n <- meanall(test_sgl10_n10)
+  
+  ## mhl_p test {{{-------------------------------------------------------------
+  mhl_p7 <- meanall(test_mhl_p095)
+  mhl_p6 <- meanall(test_mhl_p090)
+  ## p080 and p085
+  mhl_p5 <- meanall(test_mhl_p085)
+  mhl_p4 <- meanall(test_mhl_p080)
+  mhl_p3 <- meanall(test_mhl_p075)
+  mhl_p2 <- meanall(test_mhl_p070)
+  mhl_p1 <- meanall(test_mhl_p065)
+  mhl_p0 <- meanall(test_mhl_p060)
+  
+  return(list(eld_n = eld_n,
+              mhl_n = mhl_n,
+              mhl_p0 = mhl_p0,
+              mhl_p1 = mhl_p1,
+              mhl_p2 = mhl_p2,
+              mhl_p3 = mhl_p3,
+              mhl_p4 = mhl_p4,
+              mhl_p5 = mhl_p5,
+              mhl_p6 = mhl_p6,
+              mhl_p7 = mhl_p7,
+              sgl_n = sgl_n))
 }
