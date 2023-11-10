@@ -17,7 +17,6 @@ knitr::opts_chunk$set(echo = TRUE,
                   error = FALSE)
 
 ## clean the R environment
-graphi.off()
 rm(list = ls())
 freshr::freshr()
 
@@ -35,7 +34,8 @@ here::set_here()
 ```
 
 ```{r "files"}
-source("R/07_summarization.R")
+# source("R/07_summarization.R")
+source("R/00_functions.R")
 ## the R file below is the code for results
 # source("02_table2_plmlmm_code.R")
 file_location <- "results/result_alphas_2023-08-23/"
@@ -182,3 +182,9 @@ print(xtable(cov80, type = "latex"),
 print(xtable(cov90, type = "latex"), 
       file = paste0("figure/S03_multiple_alpha_060_095_cov90_", Sys.Date(), ".tex"))
 ```
+
+```{r}
+sessionInfo()
+```
+
+

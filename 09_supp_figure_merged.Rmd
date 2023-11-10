@@ -2,7 +2,9 @@
 title: "09_merge_figures"
 author: "randy"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -208,7 +210,7 @@ result500 <- rbind(s500_final) %>%
   select(-contains("_Sd"), -ss)
 
 # result <- read_csv("figure/S09_final_simulation_study_results.csv")
-View(result500)
+
 
 # results <- read_excel("figure/S09_final_simulation_study_results.xlsx") %>%
 #   as.data.frame() %>%
@@ -242,3 +244,6 @@ print(xtable(result900, type = "latex"),
       file = paste0("figure/S09_final_simulation_900_", Sys.Date(), ".tex"))
 ```
 
+```{r}
+sessionInfo()
+```

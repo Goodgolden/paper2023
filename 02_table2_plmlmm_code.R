@@ -176,3 +176,5 @@ save(test_eld_n10,
                    "_alpha_", list(alpha),
                    "_", Sys.time(), ".Rdata"))
 
+
+sessionInfo()

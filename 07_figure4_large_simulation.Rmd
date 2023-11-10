@@ -2,7 +2,9 @@
 title: "07_figure4_large_simulation"
 author: "randy"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 The simulation study with 900 samples and 600 in training set and 300 in testing set
@@ -69,13 +71,13 @@ folder2 <- "sim1000_ss900_anchor6time"
 # sim_ss <- sim_ss %>%
 #   mutate(term = rep(c("bias", "mse", "coverage50", "coverage80", "coverage90"), length(files)))
 
-# save(sim_ss, file = paste0("data/S07_five_0summary_", Sys.Date(), ".Rdata"))
+# save(sim_ss, file = paste0("data/S07_five_summary_", Sys.Date(), ".Rdata"))
 
 ```
 
 
 ```{r}
-
+load("~/Desktop/paper2023/data/S07_sim1000_ss900_anchor3time_0summary_2023-09-01.Rdata")
 data <- sim_ss %>%
   pivot_longer(cols = -term,
                names_to = "method",
@@ -348,4 +350,6 @@ figure3
 ggsave(paste0("figure/S07_five_8cr_", Sys.Date(), ".png"))
 ```
 
-
+```{r}
+sessionInfo()
+```

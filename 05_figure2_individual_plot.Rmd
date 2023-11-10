@@ -396,7 +396,9 @@ ggsave(filename = paste0("figure/S05_trajectory_final_plots_id_", id, "_", Sys.D
 ```
 
 
-
+```{r}
+sessionInfo()
+```
 
 
 

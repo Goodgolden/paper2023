@@ -290,4 +290,7 @@ flowchart3 %>%
 # file_type = "png")
 ```
 
+```{r}
+sessionInfo()
+```
 

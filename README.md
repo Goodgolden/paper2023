@@ -1,5 +1,10 @@
 # paper2023
+
 This is the repository for Randy's Biometric paper in 2023
+We have verified that re-running the supplement’s code on the supplement’s data according to the instructions in the included README file.
+We have revised, cleaned up and documented the code files in this supplement to make sure
+that they follow commonly accepted standards for scientific computing.
+The code and data supplement contains all code and data needed to reproduce all figures, tables and other results in the article and its supplementary material.
 
 - The main codes of functions and objects are stored under `paper2023/R` folder
 
@@ -26,16 +31,18 @@ This is the repository for Randy's Biometric paper in 2023
   - "0- table- demographic.Rmd"      
   - "02_table2_plmlmm_code.R"
   - "02_table2_plmlmm.Rmd"           
-  -  "03_table3_multiple-alpha_code.R"
-  -  "03_table3_multiple-alpha.Rmd"   
-  -  "04_figure- flowchart.Rmd"       
-  -  "05_figure2_individual_plot.Rmd" 
-  -  "06_figure3_small_simulation.Rmd"
-  -  "07_figure4_large_simulation.Rmd"
-  -  "08_supp_figure_chi_square.Rmd"  
-  -  "09_supp_figure_merged.Rmd"      
-  -  "10_supp_figure_lmm_aic.Rmd"     
-  -  "11_myapp" 
+  - "03_table3_multiple-alpha_code.R"
+  - "03_table3_multiple-alpha.Rmd"   
+  - "04_figure- flowchart.Rmd"       
+  - "05_figure2_individual_plot.Rmd" 
+  - "06_figure3_small_simulation.Rmd"
+  - "07_figure4_large_simulation.Rmd"
+  - "08_supp_figure_chi_square.Rmd"  
+  - "09_supp_figure_merged.Rmd"      
+  - "10_supp_figure_lmm_aic.Rmd"     
+  - "11_myapp" 
 
 
-- An under-development shiny app is saved in folder `- _myapp`
+- An under-development shiny app is saved in folder
+
+  - _myapp

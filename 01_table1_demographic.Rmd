@@ -2,6 +2,7 @@
 title: "01_table1_demographic"
 author: "randy"
 date: "`r Sys.Date()`"
+output: pdf_document
 ---
 
 ::: callout-important
@@ -20,7 +21,7 @@ date: "`r Sys.Date()`"
 ## Setup
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk(echo = TRUE,
+knitr::opts_chunk$set(echo = TRUE,
                   warnings = FALSE,
                   message = FALSE,
                   comment = "#>",
@@ -53,7 +54,7 @@ here::set_here()
 ## set seed
 set.seed(555)
 # load("data/sysdata.rda")
-# load("final/epic_clean_full_data.Rdata")
+load("final/epic_clean_full_data.Rdata")
 
 # the code to prepare for
 # epic, demog, test and train
@@ -104,7 +105,7 @@ write.csv(data2, file = paste0("data/S01_epic_clean_randy_", Sys.Date(), ".csv")
 ```{r "table1", message = FALSE, warning = FALSE}
 library(readr)
 data1 <- read_csv("data/S01_table1_dataset_randy_2023-08-23.csv")
-
+View(data1)
 
 ## table0 contains all the information about demgo for total
 table0 <- data1 %>%
@@ -116,14 +117,13 @@ table0 <- data1 %>%
                           race != 1 ~ "Other"),
          sex = case_when(sex == "F" ~ "Female",
                          sex == "M" ~ "Male"),
-         age_diff = age_max - age_min) %>% 
+         age_diff = age_max - age_min) %>%
   dplyr::select(group,
                 Genotype = genotype,
                 Gender = sex,
                 Race = race,
                 Ethnicity = ethnic,
                 "Visit number" = visitn,
-                # "Age mean" = age_mean, 
                 "Age baseline" = age_min, 
                 "Age final" = age_max, 
                 "Follow up years" = age_diff,
@@ -142,8 +142,7 @@ table0 <- data1 %>%
   as_flex_table() %>%
   flextable::bold(part = "header") %>%
   ## auto adjust the column widths
-  flextable::autofit() %>% 
-  as.data.frame()
+  flextable::autofit()
 
 ## table1 contains information of dataset grouped as training and testing
 table1 <- data1 %>%
@@ -177,8 +176,7 @@ table1 <- data1 %>%
   # update the column header
   bold_labels() %>%
   add_p() %>%
-  italicize_labels() %>%
-  as.data.frame()
+  italicize_labels()
 
 
 ## table1 contains information of dataset grouped as training and testing
@@ -204,9 +202,6 @@ table2 <- data1 %>%
                 "Follow up years" = age_diff,
                 # "Height mean" = h_mean, 
                 "Height baseline" = h_min) %>% 
-  # "Weight mean" = w_mean,
-  # "Weight baseline" = w_min)
-  ## select all the variables for table1
   tbl_summary(by = group,
               statistic = list(all_continuous() ~ "{mean} ({sd})") ) %>%
   ## just display all the variables in one column
@@ -214,13 +209,14 @@ table2 <- data1 %>%
   # update the column header
   bold_labels() %>%
   add_overall(last = TRUE) %>%
-  italicize_labels() %>% 
-  as.data.frame()
+  italicize_labels() 
+
+table0
 ```
 
 ## Saving for the table1
 
-```{r "saving"}
+```{r "saving", eval=FALSE, include=FALSE}
 
 ## save .pptx file
 ## flextable can be saved directly to powerpoints
@@ -260,5 +256,9 @@ print(xtable(table1, type = "latex"),
 print(xtable(table2, type = "latex"),
       file = paste0("figure/S01_plmlmm_table1_overall_", Sys.Date(), ".tex"))
 
+```
+
+```{r}
+sessionInfo()
 ```
 

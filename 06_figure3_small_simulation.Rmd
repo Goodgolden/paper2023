@@ -2,7 +2,9 @@
 title: "06_figure3_small_simulation"
 author: "randy"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 
@@ -190,8 +192,8 @@ folder2 <- "sim1000_ss500_anchor6time"
 ```{r}
 ## There will be three Rdata files saved in the data folder 
 #
-
 # load(paste0("data/S06_", folder2, "_0summary_", Sys.Date(), ".Rdata"))
+load("~/Desktop/paper2023/data/S06_sim1000_ss500_anchor3time_0summary_2023-08-31.Rdata")
 data <- sim_ss500 %>%
   pivot_longer(cols = -term,
                names_to = "method",
@@ -455,5 +457,7 @@ figure3
 ggsave(paste0("figure/S06_", folder2, "_8cr_", Sys.Date(), ".png"))
 ```
 
-
+```{r}
+sessionInfo()
+```
 
