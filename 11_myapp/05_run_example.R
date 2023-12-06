@@ -1,10 +1,8 @@
 
-#' Title
+#' Title Running Shiny App in package
 #'
 #' @return
 #' @export
-#'
-#' @examples
 
 run_shiny <- function() {
   appDir <- system.file("shiny-examples",

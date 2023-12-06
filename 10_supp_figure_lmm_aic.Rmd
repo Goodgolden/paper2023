@@ -206,7 +206,7 @@ ggsave(paste0("figure/S10_supp_figure_overall", Sys.Date(), ".png"))
 ## this is the linear mixed model for the analysis 
 
 ```{r}
-load("~/Desktop/paper2023/results_lmm_2023-10-19 16:01:34.Rdata")
+load("results/results_lmm_2023-10-19.Rdata")
 mae <- mean(abs(lmm_test$bias)); mae
 rmse <- mean(abs(lmm_test$bias)^2) %>% sqrt(); rmse
 cov50 <- mean(abs(lmm_test$coverage50)); cov50

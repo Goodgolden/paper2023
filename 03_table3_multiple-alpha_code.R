@@ -73,6 +73,13 @@ lm_bks_train <- lm("`.pred` ~ as.factor(time) * sex + genotype + baseline",
 predicted_train <- predict(lm_bks_train)
 predicted_test<- predict(lm_bks_train, newdata = test_new)
 
+# Mon Nov 27 11:07:00 2023 ------------------------------
+# s <- coef(lm_bks_train) %>% as.matrix()
+# mm <- model.matrix(lm_bks_train, data = train_new)
+# g(mm, s, nderiv = 1)
+View(bks)
+summary(bks)
+
 
 lb_train <- train_new %>%
   ungroup() %>%

@@ -1,0 +1,91 @@
+---
+title: "Equations"
+author: "randy"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+$$
+\begin{split}
+Y_{i} | X_{i}, b_{i} & \sim N \Big(\mu_i = X^T \beta,\  V_i = X_i^TGX_i + R_i\Big)\\
+Y_i & = X_i^T \beta + X_i^T b_i + \epsilon = X_i^T(\beta + b_i) + \epsilon_i = X_i^T \gamma_i + \epsilon_i \\
+\end{split}
+$$
+
+
+$$
+\begin{split}
+Y_i & = X_i^T\beta + X_i^Tb + \epsilon_i = X_i^T (\beta + b_i) + \epsilon_i = X_i^T \gamma_i + \epsilon_i \\
+\dot y_i & = X_i^T \gamma_i\\
+\ddot y_i & = Z_i^T \alpha + e_i
+\end{split}
+$$
+
+we can assume $\epsilon$ is independent, but $e$ is dependent across different time with in individuals 
+
+based on linear mixed model, the BLUP:
+$\dot y = x_*^T(X^TV^{-1}X)^{-1}X^TV^{-1}Y$
+
+based on linear regression BLE: 
+$\ddot y = Z^T(Z^TZ)^{-1}Z^T \dot y = H^T \dot y$, $H^T = Z^T(Z^TZ)^{-1}Z^T$
+
+then $\ddot y = Z^T(Z^TZ)^{-1}Z^T x_*^T(X^T V^{-1}X)^{-1}X^TV^{-1}Y = W^T Y$, $W^T = Z^T(Z^TZ)^{-1}Z^T x_*^T(X^T V^{-1}X)^{-1}X^TV^{-1}$ is a linear transformation from $Y$ to $\ddot y$.
+
+Assuming that $Y - X^T \beta \sim N (0, V = X^TGX + R)$, however there is violation on the independence, 
+that $\ddot y = W^T Y \sim N (W^TX^T\beta, \Sigma \neq W^TVW)$.
+
+
+
+Also we have estimations from brokenstick model: 
+
+$$
+\begin{split}
+\hat \beta & = (X^TV^{-1}X)^{-1}X^TV^{-1}Y\\
+V[\hat \beta] & = (X^TV^{-1}X)^{-1}\\
+V[\hat {\dot y} ] & = x_*^T (X^TV^{-1}X)^{-1} x_*\\
+\hat b & = \hat GX \hat V^{-1}(Y - X^T \hat \beta)\\
+V[\hat b_i - b_i] & = G - \hat G X V^{-1}X^T G + GX V^{-1}X^T(XV^{-1}X)^{-1}X^TV{-1}XG
+\end{split}
+$$
+Hence 
+
+$$
+\begin{split}
+\hat Y_i & =  X_i^T \beta + X_i^T \hat b_i\\
+& = X_i^T\beta + X_i^T\hat G_i X_i \hat V_i^{-1} (Y_i - X_i^T \beta) \\
+& = (I - X_i^T\hat G_i X_i \hat V_i^{-1}) X_i^T \beta + X_i^T \hat G_i X_i \hat V_i^{-1} Y_i\\
+& = (\hat R_i \hat V_i ^{-1}) X_i^T \beta + (1 - \hat R_i V_i^{-1})Y_i
+\end{split}
+$$
+
+
+and linear model $E[\dot y] = Z^T \alpha$ with plug-in:
+
+$$
+\begin{split}
+\hat \alpha & = (Z^TZ)^{-1} Z^T \dot y\\
+V[\hat \alpha] & = (Z^TZ)^{-1}\\
+\end{split}
+$$
+
+
+Then we have the second estimations for $V[\alpha]$ and $V[\ddot y]$, both :
+
+$$
+\begin{split}
+V[\tilde \alpha] & = (Z^{-1})^T(\dot y - \ddot y)^T(\dot y - \ddot y)Z^{-1}\\
+& = (Z^{-1})^T\Big(x_*^T (X^TV^{-1}X)^{-1}X^TV^{-1} Y - W^T Y\Big)^T\Big(x_*^T (X^TV^{-1}X)^{-1}X^TV^{-1} Y - W^T Y\Big) Z^{-1}
+\end{split}
+$$
+
+
+
+
+

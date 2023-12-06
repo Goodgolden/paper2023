@@ -9,13 +9,13 @@ server <- function(input, output) {
   observeEvent(input$run, {  })
 
   bks_pred <-
-    plmlmm::brokenstick_prediction(
+    plmlmm:::brokenstick_prediction(
       outcome = "ht",
       time = "time",
       id = "id",
       train_data = train,
       knots = c(5, 10, 12),
-      pred_time = c(2, 4, 6, 8, 10, 12, 14, 16),
+      pred_time = c(4, 8, 12),
       choice = "predicted")
 
   lb_data <-

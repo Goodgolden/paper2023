@@ -12,7 +12,7 @@ library(gamlss)
 library(JMbayes)
 
 knots = c(10, 12, 15)
-pred_time = c(6, 9, 12)
+pred_time = c(3, 6, 9, 10)
 alpha = 0.80
 
 
@@ -70,7 +70,7 @@ lm_bks_train <- lm("`.pred` ~ as.factor(time) * sex + genotype + baseline",
                    data = train_new)
 predicted_train <- predict(lm_bks_train)
 predicted_test<- predict(lm_bks_train, newdata = test_new)
-
+summary(bks)
 
 lb_train <- train_new %>%
   ungroup() %>%
@@ -87,6 +87,13 @@ lb_train <- train_new %>%
 test_new[, "lm_bks_target"] = as.numeric(predicted_test)
 lb_test <- test_new %>%
   dplyr::select(contains(c("id", "time", "lm_bks")))
+
+lb_train_w <- lb_train %>%
+  pivot_wider(values_from = lm_bks_target, names_from = time) %>%
+  column_to_rownames("id")
+View(lb_train_w)
+cov(lb_train_w) %>% sqrt()
+colMeans(lb_train_w)
 
 
 ## test_mhl_p080----------------------------------------------------------------
