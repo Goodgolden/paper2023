@@ -671,3 +671,41 @@ pulltime <- function(location, filename) {
               mhl_p7 = mhl_p7,
               sgl_n = sgl_n))
 }
+
+
+
+## use `outer`
+## ploynominal terms of X but not for linear model
+g <- function (x, pc, nderiv = 0L) {
+  browser()
+  ## check missing arguments
+  if (missing(x) || missing(pc)) stop ("arguments missing with no default!")
+  ## polynomial order p
+  p <- length(pc) - 1L
+  ## number of derivatives
+  n <- nderiv
+  ## earlier return?
+  if (n > p) return(rep.int(0, length(x)))
+  ## polynomial basis from degree 0 to degree `(p - n)`
+  X <- outer(x, 0:(p - n), FUN = "^")
+  ## initial coefficients
+  ## the additional `+ 1L` is because R vector starts from index 1 not 0
+  beta <- pc[n:p + 1L]
+  ## factorial multiplier
+  beta <- beta * factorial(n:p) / factorial(0:(p - n))
+  ## matrix vector multiplication
+  return(drop(X %*% beta))
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
