@@ -1,0 +1,21 @@
+---
+title: "Cover Letter"
+output: html_notebook
+---
+
+Dear Editor,   
+I am pleased to submit our manuscript titled "People-like-Me Methods with Mahalanobis distance: A Personalized Prediction of Longitudinal Growth in Children" for consideration of publication in Biometrics (Practice) Journal. All co-authors agree with this submission and have no conflicts of interest to report. 
+ 
+In this paper, we employed a new personalized prediction method call People-Like-Me (PLM) with nonlinear longitudinal data. PLM consists of using  curves that are similar to the particular individual we wish to predict for to predict a future trajectory for the target individual. Matches are traditionally found by calculating Euclidean distances between the target trajectory and the potential matches at a single time point. In this paper, we build from previous work on PLM to i) use Mahalanobis distance as an alternative to the traditionally used Euclidean distance for calculating matches; and ii) compare the predictions from PLM using Euclidean and Mahalanobis distances to predictions derived from a linear mixed model (LMM).  We believe that our manuscript aligns with the mission of Biometrics Practice.
+ 
+Thank you for considering our manuscript for publication.
+
+
+
+Sincerely,
+Elizabeth Juarez-Colunga
+Associate Professor  
+Department of Biostatistics and Informatics, Colorado School of Public Health 
+Associate Director of Informatics, VA Eastern Colorado Geriatric Research Education and Clinical Center 
+University of Colorado Anschutz Medical Campus
+

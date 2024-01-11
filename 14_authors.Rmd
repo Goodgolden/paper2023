@@ -1,0 +1,42 @@
+---
+title: "Authors"
+author: "randy"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Authors for Biometric Practice paper
+
+Elizabeth: [elizabeth.juarez-colunga\@cuanschutz.edu](mailto:elizabeth.juarez-colunga@cuanschutz.edu)
+
+Stef van Buuren: [S.vanBuuren\@uu.nl](mailto:S.vanBuuren@uu.nl)
+
+Katie Colborn: [KATHRYN.COLBORN\@CUANSCHUTZ.EDU](KATHRYN.COLBORN@CUANSCHUTZ.EDU)
+
+Margaret Rosenfeld: [margaret.rosenfeld\@seattlechildrens.org](mailto:margaret.rosenfeld@seattlechildrens.org)
+
+Jeremy Graber: [jeremy.graber\@cuanschutz.edu](jeremy.graber@cuanschutz.edu)
+Jennifer Stevens-Lapsley: [jennifer.stevens-lapsley\@cuanschutz.edu](jennifer.stevens-lapsley@cuanschutz.edu)
+
+Xin Jin$^{1}$, 
+Elizabeth Juarez-Colunga$^{1,*}$, 
+Stef van-Buuren$^{2}$, \\
+Kathryn L Colborn$^{3}$,
+Margaret Rosenfeld$^{4}$, \\
+Jeremy Graber$^{5,6}$, and
+and Jennifer Stevens-Lapsley$^{6,7}$,\\
+$^{1}$ Department of Biostatistics and Informatics, Colorado School of Public Health, Aurora, CO\\
+$^{2}$ Department of Methodology and Statistics, Utrecht University, Utrecht, the Netherlands\\
+$^{3}$ Department of Medicine, University of Colorado, Aurora, CO \\
+$^{4}$ Department of Pediatrics, Seattle Children's Hospital, University of Washington, Seattle, WA\\
+$^{5}$ Denver/Seattle Center of Innovation for Veteran-Centered and Value-Driven Care, \\ VA Eastern Colorado Health Care System, Aurora, CO \\
+$^{6}$ Physical Therapy Program, Department of Physical Medicine and Rehabilitation,\\  University of Colorado, Aurora, CO \\
+$^{7}$ VA Eastern Colorado Geriatric Research, Education, and Clinical Center (GRECC),\\ VA Eastern Colorado Health Care System, Aurora, CO
+
+1. Physical Therapy Program, Department of Physical Medicine and Rehabilitation, University of Colorado, Aurora, CO
+2. VA Eastern Colorado Geriatric Research, Education, and Clinical Center (GRECC), VA Eastern Colorado Health Care System, Aurora, CO
+
+1. Denver/Seattle Center of Innovation for Veteran-Centered and Value-Driven Care, VA Eastern Colorado Health Care System, Aurora, CO
+2. Physical Therapy Program, Department of Physical Medicine and Rehabilitation, University of Colorado, Aurora, CO
+
+

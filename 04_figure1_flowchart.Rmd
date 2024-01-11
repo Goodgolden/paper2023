@@ -109,7 +109,7 @@ node [shape = rectangle, width = 4, fillcolor = Biege]
 a [label = 
   <
     <b> </b> <br ALIGN = 'CENTER'/> 
-    <b>Imputing: </b> <br ALIGN = 'CENTER'/> 
+    <b>Regularizing time: </b> <br ALIGN = 'CENTER'/> 
     &nbsp; &#8226; Brokenstick model prediction <br ALIGN = 'LEFT'/>
     >
   ]
@@ -117,8 +117,10 @@ a [label =
 b [label = 
   <
     <b> </b> <br ALIGN = 'CENTER'/> 
-    <b>Linear Model: </b> <br ALIGN = 'CENTER'/> 
-    &nbsp; &#8226; Linear model prediction with the imputes<br ALIGN = 'LEFT'/>
+    <b>Adding covariates: </b> <br ALIGN = 'CENTER'/> 
+    &nbsp; &#8226; Linear model prediction <br ALIGN = 'LEFT'/>
+     &nbsp; &nbsp; &nbsp;  with the demographics <br ALIGN = 'LEFT'/>
+     &nbsp; &nbsp; &nbsp;  and baseline outcome <br ALIGN = 'LEFT'/>
     >
   ]
   

@@ -1,0 +1,23 @@
+% latex table generated in R 4.2.2 by xtable 1.8-4 package
+% Fri Nov 10 10:22:22 2023
+\begin{table}[ht]
+\centering
+\begin{tabular}{rllrr}
+  \hline
+ & fixed & random & AIC & BIC \\ 
+  \hline
+1 & bs(time, knots = c(10, 12, 15), degree = 3) * sex + genotype & 1 + bs(time, df = 5, degree = 2)$|$ id & 145323.92 & 145653.89 \\ 
+  2 & bs(time, knots = c(10, 12, 15), degree = 3) * sex + genotype & 1 + bs(time, df = 5, degree = 3)$|$ id & 220137.46 & 220483.26 \\ 
+  3 & bs(time, knots = c(5, 10, 15), degree = 3) * sex + genotype & 1 + bs(time, df = 5, degree = 2)$|$ id & 221241.62 & 221587.42 \\ 
+  4 & bs(time, knots = c(5, 10, 15), degree = 3) * sex + genotype & 1 + bs(time, df = 4, degree = 1)$|$ id & 221241.62 & 221587.42 \\ 
+  5 & bs(time, knots = c(10, 12, 15), degree = 3) * sex + genotype & 1 + bs(time, df = 4, degree  = 2)$|$id & 226128.18 & 226419.38 \\ 
+  6 & bs(time, knots = c(10, 12, 15), degree = 3) * sex + genotype & 1 + bs(time, df = 4, degree = 1)$|$ id & 229120.96 & 229412.16 \\ 
+  7 & bs(time, knots = c(5, 10, 15), degree = 3) * sex + genotype & 1 + bs(time, df = 4, degree = 3)$|$id & 229273.86 & 229565.06 \\ 
+  8 & bs(time, knots = c(5, 10), degree = 3) * sex + genotype & 1 + time$|$ id & 276004.31 & 276168.11 \\ 
+  9 & bs(time, knots = 10, degree = 3) * sex + genotype & 1 + time$|$ id & 280094.87 & 280240.47 \\ 
+  10 & bs(time, knots = c(5, 10, 15), degree = 3) * sex + genotype & 1 + time$|$ id & 314642.43 & 314806.23 \\ 
+  11 & bs(time, knots = c(5, 10), degree = 3) * sex + genotype & 1 $|$ id & 315240.09 & 315385.69 \\ 
+  12 & bs(time, knots = 10, degree = 3) * sex + genotype & 1 $|$ id & 317322.19 & 317449.59 \\ 
+   \hline
+\end{tabular}
+\end{table}

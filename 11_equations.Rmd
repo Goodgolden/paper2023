@@ -51,7 +51,7 @@ $$
 V[\hat \beta] & = (X^TV^{-1}X)^{-1}\\
 V[\hat {\dot y} ] & = x_*^T (X^TV^{-1}X)^{-1} x_*\\
 \hat b & = \hat GX \hat V^{-1}(Y - X^T \hat \beta)\\
-V[\hat b_i - b_i] & = G - \hat G X V^{-1}X^T G + GX V^{-1}X^T(XV^{-1}X)^{-1}X^TV{-1}XG
+V[\hat b_i - b_i] & = G - \hat G X V^{-1}X^T G + GX V^{-1}X^T(XV^{-1}X)^{-1}X^TV^{-1}XG
 \end{split}
 $$
 Hence 

@@ -91,7 +91,7 @@ lb_test <- test_new %>%
 lb_train_w <- lb_train %>%
   pivot_wider(values_from = lm_bks_target, names_from = time) %>%
   column_to_rownames("id")
-View(lb_train_w)
+# View(lb_train_w)
 cov(lb_train_w) %>% sqrt()
 colMeans(lb_train_w)
 

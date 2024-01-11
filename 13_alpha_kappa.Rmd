@@ -1,0 +1,272 @@
+---
+title: "13_kappa_alpha"
+author: "randy"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+# knitr::opts_chunk$set(echo = TRUE,
+#                       warnings = FALSE,
+#                       message = FALSE,
+#                       comment = "#>",
+#                       results = "hide",
+#                       error = FALSE)
+
+## clean the R environment
+
+## load packages
+library(here, quietly = TRUE)
+library(tidyverse, quietly = TRUE)
+library(splines)
+library(tibble)
+library(nlme)
+library(gamlss)
+library(JMbayes)
+
+## check the directory for the file
+# here::dr_here()
+here::set_here()
+
+## the figure or results should be saved 
+# paste0("foldername/Sfilename_workingresult_", 
+#.       Sys.Date(), ".filetype")
+```
+
+```{r}
+people_like_us <- function(train_data,
+                           test_data,
+                           outcome_var = "ht",
+                           time_var = "time",
+                           id_var = "id",
+                           tmin = 0,
+                           tmax = 17,
+                           brokenstick_knots,
+                           anchor_time,
+                           linear_formula = "ht ~ as.factor(time) * sex + ethnic + genotype + baseline",
+                           gamlss_formula = "ht ~ cs(time, df = 3)",
+                           gamlss_sigma = "~ cs(time, df = 1)",
+                           match_methods = c("euclidean", "mahalanobis", "single"),
+                           weight = FALSE,
+                           match_alpha = NULL,
+                           match_number = NULL,
+                           match_plot = TRUE,
+                           predict_plot = TRUE,
+                           ...) {
+
+  ## user defined variables
+  outcome_var <- ensym(outcome_var)
+  time_var <- ensym(time_var)
+  id_var <- ensym(id_var)
+
+  # id_train <- dplyr::select(train_data, !!id_var) %>% unique() %>% unlist()
+  id_test <- dplyr::select(test_data, !!id_var) %>% unique() %>% unlist()
+
+  ## extract the test baseline information
+  test_baseline <- test_data %>%
+    group_by(!!id_var) %>%
+    arrange(!!time_var) %>%
+    slice(1L) %>%
+    ## change the baseline outcome_vars as new variable
+    # dplyr::select(baseline = !!outcome_var, everything()) %>%
+    ## move the original time_var as all ZEROs
+    dplyr::select(- !!time_var)
+
+  # Tue Jul 25 22:09:42 2023 ------------------------------
+  ## will add other methods probably will add ifelse
+  ## currently just the brokenstick model
+  brokenstick <- impute_brokenstick(outcome_var = !!outcome_var,
+                                    time_var = !!time_var,
+                                    id_var = !!id_var,
+                                    bs_knots = brokenstick_knots,
+                                    anchor_time = anchor_time,
+                                    data = train_data)
+
+  ## linear regression is the necessary one will be kept
+  lm_bks <- lm(as.formula(linear_formula),
+               data = brokenstick)
+  # Tue Jul 25 22:30:34 2023 ------------------------------
+  # test_baseline[paste0("anchor_", anchor_time)] <- NA
+
+  data_test1 <- test_baseline %>%
+    # dplyr::select(-!!time_var) %>%
+    ## this is the unnest way of doing testing dataset
+    mutate(time = list(anchor_time)) %>%
+    unnest(cols = !!time_var) %>%
+    ## original way of augment the testing dataset
+    # group_by(!!id_var) %>%
+    # pivot_longer(cols = contains("anchor_"),
+    #              names_to = "time0",
+    #              names_prefix = "anchor_",
+    #              values_to = "lm_bks_target") %>%
+    rename(baseline = !!outcome_var)
+
+  lp_test <- data_test1 %>%
+    ungroup() %>%
+    mutate(lm_bks_target = predict(lm_bks, newdata = .)) %>%
+    dplyr::select(!!id_var, !!time_var, contains("lm_bks_target")) %>%
+    as.matrix() %>%
+    as.data.frame() %>%
+    rename(!!outcome_var := lm_bks_target)
+
+  lp_train <- brokenstick %>%
+    ungroup() %>%
+    mutate(lm_bks_target = predict(lm_bks)) %>%
+    dplyr::select(!!id_var, !!time_var, contains("lm_bks_target")) %>%
+    as.matrix() %>%
+    as.data.frame() %>%
+    rename(!!outcome_var := lm_bks_target)
+
+  # browser()
+  # browser()
+  ## end of 01_impute.R file ------------------------
+  subset <- lp_test %>%
+    group_by(!!id_var) %>%
+    group_map(~dis_match(lb_train = lp_train,
+                         lb_test_ind = .,
+                         train = train_data,
+                         match_methods = match_methods,
+                         id_var = !!id_var,
+                         outcome_var = !!outcome_var,
+                         time_var = !!time_var,
+                         match_alpha = match_alpha,
+                         match_number = match_number,
+                         match_time = match_time,
+                         match_plot = match_plot) %>% 
+                dplyr::select("id") %>%
+                unique() %>%
+                nrow())
+  results <- quantile(unlist(subset), probs = seq(0, 1, 0.25))
+  # ?quantile
+  return(nrow = results)
+}
+
+```
+
+
+
+```{r include=FALSE}
+# load("R/train_test.rda")
+
+outcome3q <- map(c(0.6, 0.65, 0.70, 0.75, 0.8, 0.85, 0.9, 0.95, 0.97, 0.99, 0.995),
+                     ~ people_like_us(train_data = train,
+                                      test_data = test,
+                                      anchor_time = c(4, 8, 12),
+                                      brokenstick_knots = c(10, 12, 15),
+                                      match_methods = "mahalanobis",
+                                      match_alpha = .,
+                                      weight = FALSE,
+                                      match_plot = FALSE,
+                                      predict_plot = FALSE))
+
+outcome41q <- map(c(0.6, 0.65, 0.70, 0.75, 0.8, 0.85, 0.9, 0.95, 0.97, 0.99, 0.995),
+                     ~ people_like_us(train_data = train,
+                                      test_data = test,
+                                      anchor_time = c(3, 6, 9, 12),
+                                      brokenstick_knots = c(10, 12, 15),
+                                      match_methods = "mahalanobis",
+                                      match_alpha = .,
+                                      weight = FALSE,
+                                      match_plot = FALSE,
+                                      predict_plot = FALSE))
+
+outcome42q <- map(c(0.6, 0.65, 0.70, 0.75, 0.8, 0.85, 0.9, 0.95, 0.97, 0.99, 0.995),
+                     ~ people_like_us(train_data = train,
+                                      test_data = test,
+                                      anchor_time = c(3,6,9,11,12,15),
+                                      brokenstick_knots = c(10, 12, 15),
+                                      match_methods = "mahalanobis",
+                                      match_alpha = .,
+                                      weight = FALSE,
+                                      match_plot = FALSE,
+                                      predict_plot = FALSE))
+
+outcome3q <- map(outcome3q, cbind) %>% as.data.frame() %>% 
+  dplyr::select(p60 = 1, p65 = 2, p70 = 3, p75 = 4, p80 = 5, p85 = 6, p90 = 7, p95 = 8, p97 = 9, p99 = 10, p100 = 11)
+outcome41q <- map(outcome41q, cbind) %>% as.data.frame() %>% 
+  dplyr::select(p60 = 1, p65 = 2, p70 = 3, p75 = 4, p80 = 5, p85 = 6, p90 = 7, p95 = 8, p97 = 9, p99 = 10, p100 = 11)
+outcome42q <- map(outcome42q, cbind) %>% as.data.frame() %>% 
+  dplyr::select(p60 = 1, p65 = 2, p70 = 3, p75 = 4, p80 = 5, p85 = 6, p90 = 7, p95 = 8, p97 = 9, p99 = 10, p100 = 11)
+
+result3q <- rbind(outcome3q, outcome41q, outcome42q) %>%
+  as.data.frame()
+
+```
+
+```{r}
+library(xtable)
+
+print(xtable(result3q, type = "latex"), 
+      file = paste0("figure/S10_alpha_kappa", Sys.Date(), ".tex"))
+
+xtable(result3q, type = "latex")
+
+```
+
+% latex table generated in R 4.2.2 by xtable 1.8-4 package
+% Wed Dec 20 09:26:57 2023
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrrrrrrrr}
+  \hline
+ & p65 & p70 & p75 & p80 & p85 & p90 & p95 & p97 & p99\\ 
+  \hline
+1 & 41.00 & 38.00 & 29.00 & 26.00 & 22.00 & 17.00 & 11.00 & 7.00 & 6.00 & 1.00 & 0.00 \\ 
+  2 & 277.00 & 261.00 & 238.00 & 221.00 & 201.00 & 173.00 & 151.00 & 115.00 & 98.00 & 68.00 & 54.00 \\ 
+  3 & 338.00 & 326.00 & 308.00 & 296.00 & 275.00 & 246.00 & 219.00 & 173.00 & 146.00 & 96.00 & 74.00 \\ 
+  4 & 368.00 & 355.00 & 340.00 & 323.00 & 302.00 & 277.00 & 247.00 & 199.00 & 169.00 & 113.00 & 91.00 \\ 
+  5 & 388.00 & 372.00 & 358.00 & 346.00 & 320.00 & 297.00 & 260.00 & 215.00 & 186.00 & 138.00 & 113.00 \\ 
+  6 & 77.00 & 71.00 & 57.00 & 43.00 & 39.00 & 29.00 & 24.00 & 13.00 & 11.00 & 6.00 & 4.00 \\ 
+  7 & 323.00 & 314.00 & 302.00 & 280.00 & 264.00 & 231.00 & 206.00 & 166.00 & 145.00 & 105.00 & 91.00 \\ 
+  8 & 381.00 & 370.00 & 357.00 & 341.00 & 326.00 & 305.00 & 282.00 & 237.00 & 212.00 & 160.00 & 127.00 \\ 
+  9 & 405.00 & 395.00 & 384.00 & 371.00 & 355.00 & 337.00 & 307.00 & 266.00 & 239.00 & 184.00 & 152.00 \\ 
+  10 & 418.00 & 412.00 & 402.00 & 391.00 & 373.00 & 356.00 & 331.00 & 283.00 & 255.00 & 198.00 & 173.00 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrrrrrrrr}
+  \hline
+ & p65 & p70 & p75 & p80 & p85 & p90 & p95 & p97 & p99\\ 
+  \hline
+1 & 41.00 & 38.00 & 29.00 & 26.00 & 22.00 & 17.00 & 11.00 & 7.00 & 6.00 & 1.00 & 0.00 \\ 
+  2 & 277.00 & 261.00 & 238.00 & 221.00 & 201.00 & 173.00 & 151.00 & 115.00 & 98.00 & 68.00 & 54.00 \\ 
+  3 & 338.00 & 326.00 & 308.00 & 296.00 & 275.00 & 246.00 & 219.00 & 173.00 & 146.00 & 96.00 & 74.00 \\ 
+  4 & 368.00 & 355.00 & 340.00 & 323.00 & 302.00 & 277.00 & 247.00 & 199.00 & 169.00 & 113.00 & 91.00 \\ 
+  5 & 388.00 & 372.00 & 358.00 & 346.00 & 320.00 & 297.00 & 260.00 & 215.00 & 186.00 & 138.00 & 113.00 \\ 
+  6 & 77.00 & 71.00 & 57.00 & 43.00 & 39.00 & 29.00 & 24.00 & 13.00 & 11.00 & 6.00 & 4.00 \\ 
+  7 & 323.00 & 314.00 & 302.00 & 280.00 & 264.00 & 231.00 & 206.00 & 166.00 & 145.00 & 105.00 & 91.00 \\ 
+  8 & 381.00 & 370.00 & 357.00 & 341.00 & 326.00 & 305.00 & 282.00 & 237.00 & 212.00 & 160.00 & 127.00 \\ 
+  9 & 405.00 & 395.00 & 384.00 & 371.00 & 355.00 & 337.00 & 307.00 & 266.00 & 239.00 & 184.00 & 152.00 \\ 
+  10 & 418.00 & 412.00 & 402.00 & 391.00 & 373.00 & 356.00 & 331.00 & 283.00 & 255.00 & 198.00 & 173.00 \\ 
+  11 & 160.00 & 138.00 & 120.00 & 103.00 & 86.00 & 75.00 & 57.00 & 39.00 & 27.00 & 18.00 & 12.00 \\ 
+  12 & 533.00 & 469.00 & 361.00 & 350.00 & 338.00 & 322.00 & 302.00 & 260.00 & 229.00 & 186.00 & 162.00 \\ 
+  13 & 645.00 & 550.00 & 413.00 & 403.00 & 393.00 & 379.00 & 360.00 & 325.00 & 303.00 & 256.00 & 235.00 \\ 
+  14 & 684.00 & 584.00 & 426.00 & 419.00 & 413.00 & 403.00 & 386.00 & 355.00 & 334.00 & 288.00 & 260.00 \\ 
+  15 & 700.00 & 610.00 & 437.00 & 431.00 & 423.00 & 417.00 & 402.00 & 375.00 & 353.00 & 305.00 & 274.00 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
