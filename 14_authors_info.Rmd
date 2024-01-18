@@ -25,6 +25,7 @@ Kathryn L Colborn$^{3}$,
 Margaret Rosenfeld$^{4}$, \\
 Jeremy Graber$^{5,6}$, and
 and Jennifer Stevens-Lapsley$^{6,7}$,\\
+
 $^{1}$ Department of Biostatistics and Informatics, Colorado School of Public Health, Aurora, CO\\
 $^{2}$ Department of Methodology and Statistics, Utrecht University, Utrecht, the Netherlands\\
 $^{3}$ Department of Medicine, University of Colorado, Aurora, CO \\
